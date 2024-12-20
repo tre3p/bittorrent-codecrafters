@@ -1,20 +1,15 @@
-import com.google.gson.Gson;
-// import com.dampcake.bencode.Bencode; - available if you need it!
+import com.google.gson.Gson
 
 val gson = Gson()
 
 fun main(args: Array<String>) {
-    // You can use print statements as follows for debugging, they'll be visible when running tests.
-    System.err.println("Logs from your program will appear here!")
-
     val command = args[0]
     when (command) {
         "decode" -> {
-            // Uncomment this block to pass the first stage
-            // val bencodedValue = args[1]
-            // val decoded = decodeBencode(bencodedValue)
-            // println(gson.toJson(decoded))
-            // return
+            val bencodedValue = args[1]
+            val decoded = decodeBencode(bencodedValue)
+            println(gson.toJson(decoded))
+            return
         }
         else -> println("Unknown command $command")
     }
