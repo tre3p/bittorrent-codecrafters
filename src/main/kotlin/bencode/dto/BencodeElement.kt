@@ -1,5 +1,8 @@
 package bencode.dto
 
+import kotlin.collections.component1
+import kotlin.collections.component2
+
 sealed class BencodeElement<T> {
     abstract val data: T
 
@@ -41,5 +44,7 @@ sealed class BencodeElement<T> {
             is Long -> this.data[BencodeInteger(key)]
             else -> error("Unknown type ${key::class.java} of key provided for get function of bencoded dictionary")
         }
+
+        fun getRawData() = this.data.map { (k, v) -> k.data to v.data }.toMap()
     }
 }

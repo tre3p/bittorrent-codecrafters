@@ -21,4 +21,5 @@ private fun handleInfo(torrentFileName: String) {
 
     println("Tracker URL: ${torrent.announceUrl}")
     println("Length: ${torrent.info.length}")
+    println("Info Hash: ${torrent.info.infoHash}")
 }

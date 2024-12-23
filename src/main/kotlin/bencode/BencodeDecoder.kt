@@ -1,20 +1,13 @@
 package bencode
 
 import bencode.dto.BencodeElement
+import bencode.ops.END_TOKEN_BYTE
+import bencode.ops.INTEGER_TOKEN_START_BYTE
+import bencode.ops.LIST_TOKEN_START_BYTE
+import bencode.ops.MAP_TOKEN_START_BYTE
+import bencode.ops.STRING_DELIMITER_BYTE
 
 private typealias ParsedBencodeElement = Pair<BencodeElement<*>, Int>
-
-private const val STRING_DELIMITER_CHAR = ':'
-private const val INTEGER_TOKEN_START_CHAR = 'i'
-private const val LIST_TOKEN_START_CHAR = 'l'
-private const val MAP_TOKEN_START_CHAR = 'd'
-private const val END_TOKEN_CHAR = 'e'
-
-private const val STRING_DELIMITER_BYTE = STRING_DELIMITER_CHAR.code.toByte()
-private const val INTEGER_TOKEN_START_BYTE = INTEGER_TOKEN_START_CHAR.code.toByte()
-private const val LIST_TOKEN_START_BYTE = LIST_TOKEN_START_CHAR.code.toByte()
-private const val MAP_TOKEN_START_BYTE = MAP_TOKEN_START_CHAR.code.toByte()
-private const val END_TOKEN_BYTE = END_TOKEN_CHAR.code.toByte()
 
 tailrec fun decodeBencode(
     bencoded: ByteArray,
