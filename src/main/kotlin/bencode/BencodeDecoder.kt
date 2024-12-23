@@ -2,10 +2,7 @@ package bencode
 
 import bencode.dto.BencodeElement
 
-private data class ParsedBencodeElement(
-    val bencodeElement: BencodeElement<*>,
-    val endElementIdx: Int
-)
+private typealias ParsedBencodeElement = Pair<BencodeElement<*>, Int>
 
 private const val STRING_DELIMITER_CHAR = ':'
 private const val INTEGER_TOKEN_START_CHAR = 'i'
@@ -28,12 +25,12 @@ tailrec fun decodeBencode(
         return parsedTokens
     }
 
-    val parsedElement = decodeSingleBencodeElement(bencoded, nextTokenPosition)
+    val (parsedElement, endIdx) = decodeSingleBencodeElement(bencoded, nextTokenPosition)
 
     return decodeBencode(
         bencoded,
-        parsedTokens = parsedTokens + parsedElement.bencodeElement,
-        nextTokenPosition = nextTokenPosition + parsedElement.endElementIdx + 1
+        parsedTokens = parsedTokens + parsedElement,
+        nextTokenPosition = nextTokenPosition + endIdx + 1
     )
 }
 
@@ -44,9 +41,25 @@ private fun decodeSingleBencodeElement(bencode: ByteArray, startIdx: Int): Parse
         Character.isDigit(firstByteChar) -> decodeBencodedString(bencode, startIdx)
         bencode[startIdx] == INTEGER_TOKEN_START_BYTE -> decodeBencodedInteger(bencode, startIdx)
         bencode[startIdx] == LIST_TOKEN_START_BYTE -> decodeBencodedList(bencode, startIdx)
+        bencode[startIdx] == MAP_TOKEN_START_BYTE -> decodeBencodedDictionary(bencode, startIdx)
 
-        else -> error("Unknown bencode element encountered: $firstByteChar")
+        else -> error("Unknown bencode element encountered: '$firstByteChar'")
     }
+}
+
+private fun decodeBencodedDictionary(bencoded: ByteArray, startIndex: Int): ParsedBencodeElement {
+    val parsedDictionary = mutableMapOf<BencodeElement<*>, BencodeElement<*>>()
+    var currentIdx = startIndex + 1
+
+    while (bencoded[currentIdx] != END_TOKEN_BYTE) {
+        val (dictKey, dictKeyEndIdx) = decodeSingleBencodeElement(bencoded, currentIdx)
+        val (dictValue, dictValueEndIdx) = decodeSingleBencodeElement(bencoded, dictKeyEndIdx + 1)
+        currentIdx = dictValueEndIdx + 1
+
+        parsedDictionary.put(dictKey, dictValue)
+    }
+
+    return ParsedBencodeElement(BencodeElement.BencodeDictionary(parsedDictionary), currentIdx)
 }
 
 private fun decodeBencodedInteger(bencoded: ByteArray, startIndex: Int): ParsedBencodeElement {
@@ -64,10 +77,10 @@ private fun decodeBencodedList(
     val decodedElements = mutableListOf<BencodeElement<*>>()
 
     while (bencoded[currentElementPosition] != END_TOKEN_BYTE) {
-        val decodedElement = decodeSingleBencodeElement(bencoded, currentElementPosition)
-        currentElementPosition = decodedElement.endElementIdx + 1
+        val (element, elementEndIdx) = decodeSingleBencodeElement(bencoded, currentElementPosition)
+        currentElementPosition = elementEndIdx + 1
 
-        decodedElements.add(decodedElement.bencodeElement)
+        decodedElements.add(element)
     }
 
     return ParsedBencodeElement(BencodeElement.BencodeList(decodedElements), currentElementPosition)
@@ -82,10 +95,7 @@ private fun decodeBencodedString(bencodedArr: ByteArray, startIndex: Int): Parse
 
     val bencodedValue = String(bencodedArr.copyOfRange(stringStartIdx, stringEndIdx))
 
-    return ParsedBencodeElement(
-        bencodeElement = BencodeElement.BencodeString(bencodedValue),
-        endElementIdx = stringEndIdx - 1
-    )
+    return ParsedBencodeElement(BencodeElement.BencodeString(bencodedValue), stringEndIdx - 1)
 }
 
 private fun ByteArray.firstIndexOf(target: Byte, startPos: Int): Int {

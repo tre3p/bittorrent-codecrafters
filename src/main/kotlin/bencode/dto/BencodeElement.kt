@@ -11,9 +11,7 @@ sealed class BencodeElement<T> {
     class BencodeString(
         override val data: String
     ) : BencodeElement<String>() {
-        override fun toString(): String {
-            return "\"$data\""
-        }
+        override fun toString() = "\"$data\""
     }
 
     class BencodeInteger(
@@ -22,5 +20,14 @@ sealed class BencodeElement<T> {
 
     class BencodeList(
         override val data: List<BencodeElement<*>>
-    ) : BencodeElement<List<BencodeElement<*>>>()
+    ) : BencodeElement<List<BencodeElement<*>>>() {
+        override fun toString() = this.data.joinToString(prefix = "[", separator = ",", postfix = "]")
+    }
+
+    class BencodeDictionary(
+        override val data: Map<BencodeElement<*>, BencodeElement<*>>,
+    ) : BencodeElement<Map<BencodeElement<*>, BencodeElement<*>>>() {
+        override fun toString() =
+            this.data.map { (k, v) -> "$k:$v" }.joinToString(prefix = "{", separator = ",", postfix = "}")
+    }
 }
