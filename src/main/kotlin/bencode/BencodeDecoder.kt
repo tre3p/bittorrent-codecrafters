@@ -93,9 +93,9 @@ private fun decodeBencodedString(bencodedArr: ByteArray, startIndex: Int): Parse
     val stringStartIdx = firstColonIndex + 1
     val stringEndIdx = stringStartIdx + stringSize
 
-    val bencodedValue = String(bencodedArr.copyOfRange(stringStartIdx, stringEndIdx))
+    val bencodedValue = bencodedArr.copyOfRange(stringStartIdx, stringEndIdx)
 
-    return ParsedBencodeElement(BencodeElement.BencodeString(bencodedValue), stringEndIdx - 1)
+    return ParsedBencodeElement(BencodeElement.BencodeByteString(bencodedValue), stringEndIdx - 1)
 }
 
 private fun ByteArray.firstIndexOf(target: Byte, startPos: Int): Int {

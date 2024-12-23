@@ -3,31 +3,43 @@ package bencode.dto
 sealed class BencodeElement<T> {
     abstract val data: T
 
-    /**
-     * Default implementation of toString() for all of the bencode elements
-     */
-    override fun toString(): String = data.toString()
+    data class BencodeByteString(
+        override val data: ByteArray
+    ) : BencodeElement<ByteArray>() {
+        val strValue = String(this.data)
 
-    class BencodeString(
-        override val data: String
-    ) : BencodeElement<String>() {
-        override fun toString() = "\"$data\""
+        override fun toString() = "\"${strValue}\""
+        override fun equals(other: Any?) = this.data.contentEquals((other as? BencodeByteString)?.data)
+        override fun hashCode() = data.contentHashCode()
     }
 
-    class BencodeInteger(
+    data class BencodeInteger(
         override val data: Long
-    ) : BencodeElement<Long>()
+    ) : BencodeElement<Long>() {
+        override fun toString() = this.data.toString()
+    }
 
-    class BencodeList(
+    data class BencodeList(
         override val data: List<BencodeElement<*>>
     ) : BencodeElement<List<BencodeElement<*>>>() {
         override fun toString() = this.data.joinToString(prefix = "[", separator = ",", postfix = "]")
     }
 
-    class BencodeDictionary(
+    data class BencodeDictionary(
         override val data: Map<BencodeElement<*>, BencodeElement<*>>,
     ) : BencodeElement<Map<BencodeElement<*>, BencodeElement<*>>>() {
         override fun toString() =
             this.data.map { (k, v) -> "$k:$v" }.joinToString(prefix = "{", separator = ",", postfix = "}")
+
+        /**
+         * Helper function which wraps key to the corresponding bencoded type.
+         * Function supposes that no other keys rather than strings and ints exists,
+         * cause there is no use case for such complex keys at the moment.
+         */
+        operator fun get(key: Any) = when (key) {
+            is String -> this.data[BencodeByteString(key.toByteArray())]
+            is Long -> this.data[BencodeInteger(key)]
+            else -> error("Unknown type ${key::class.java} of key provided for get function of bencoded dictionary")
+        }
     }
 }
