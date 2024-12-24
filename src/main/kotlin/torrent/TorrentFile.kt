@@ -15,10 +15,10 @@ data class TorrentFile(
         val name: String,
         val pieceLength: Long,
         val pieces: ByteArray,
-        val infoHash: String
+        val infoHash: ByteArray
     )
 
-    fun pieceHashes() = this.info.pieces.asIterable().chunked(20).map { it.joinToString("") { "%02x".format(it) } }
+    fun pieceHashes() = this.info.pieces.asIterable().chunked(PIECE_HASH_SIZE).map { it.toByteArray() }
 
     companion object {
         fun fromBytes(bencodedBytes: ByteArray): TorrentFile =
@@ -40,11 +40,8 @@ data class TorrentFile(
             }
 
         private fun keyNotFoundErr(keyName: String): Nothing = error("Expected key '$keyName' is not found")
+        private fun sha1Hash(data: ByteArray) = MessageDigest.getInstance("SHA-1").digest(data)
 
-        private fun sha1Hash(data: ByteArray): String {
-            val md = MessageDigest.getInstance("SHA-1")
-            val digest = md.digest(data)
-            return digest.joinToString("") { "%02x".format(it) }
-        }
+        private const val PIECE_HASH_SIZE = 20
     }
 }
