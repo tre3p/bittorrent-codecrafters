@@ -18,6 +18,8 @@ data class TorrentFile(
         val infoHash: String
     )
 
+    fun pieceHashes() = this.info.pieces.asIterable().chunked(20).map { it.joinToString("") { "%02x".format(it) } }
+
     companion object {
         fun fromBytes(bencodedBytes: ByteArray): TorrentFile =
             (decodeBencode(bencodedBytes).first() as BencodeElement.BencodeDictionary).let { metaDict ->

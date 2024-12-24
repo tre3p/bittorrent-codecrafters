@@ -22,4 +22,8 @@ private fun handleInfo(torrentFileName: String) {
     println("Tracker URL: ${torrent.announceUrl}")
     println("Length: ${torrent.info.length}")
     println("Info Hash: ${torrent.info.infoHash}")
+    println("Piece Length: ${torrent.info.pieceLength}")
+    println("Piece Hashes:").also {
+        torrent.pieceHashes().forEach { println(it) }
+    }
 }
